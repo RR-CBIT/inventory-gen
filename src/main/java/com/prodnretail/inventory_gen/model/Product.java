@@ -1,6 +1,7 @@
 package com.prodnretail.inventory_gen.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.*;
 
@@ -18,11 +19,15 @@ public class Product {
     private UUID id;
 
     @Column(nullable= false)
+    @NotBlank(message = "Product name is required")
     private String prodName;
 
+    @Size(max=255,message = "Desccription is too long")
     private String prodDescription;
 
     @Column(nullable = false)
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be greater than 0")
     private Double price;
     private Integer quantity;
 
