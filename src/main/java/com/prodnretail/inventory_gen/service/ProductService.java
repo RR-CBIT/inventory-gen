@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+
 import com.prodnretail.inventory_gen.model.Product;
 import com.prodnretail.inventory_gen.repository.ProductRepository;
 
+@Service
 public class ProductService {
     private final ProductRepository productRepo;
 
