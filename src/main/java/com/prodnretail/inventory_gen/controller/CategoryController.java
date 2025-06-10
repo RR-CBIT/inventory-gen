@@ -3,6 +3,7 @@ package com.prodnretail.inventory_gen.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.prodnretail.inventory_gen.dto.CategoryDTO;
 import com.prodnretail.inventory_gen.model.Category;
 import com.prodnretail.inventory_gen.service.CategoryService;
 
@@ -26,27 +28,30 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<Category> getAllCategories(){
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<CategoryDTO>> getAllCategories(){
+        List <CategoryDTO> dtos= categoryService.getAllCategories().stream()
+        .map(categoryService::toDto).toList();
+        return ResponseEntity.ok(dtos);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable UUID id){
+    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable UUID id){
         return categoryService.getCategoryById(id)
-        .map(ResponseEntity::ok)
+        .map(category -> new ResponseEntity<>(categoryService.toDto(category),HttpStatus.OK))
         .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Category createCategory(@RequestBody Category category){
-        return categoryService.createCategory(category);
+    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO){
+        Category saved = categoryService.saveCategory(categoryService.toEntity(categoryDTO));
+        return new ResponseEntity<>(categoryService.toDto(saved),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable UUID id, @RequestBody Category updatedCategory) {
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody CategoryDTO dto) {
         try {
-            Category category = categoryService.updateCategory(id, updatedCategory);
-            return ResponseEntity.ok(category);
+            Category updated = categoryService.updateCategoryFromDto(id, dto);
+            return ResponseEntity.ok(categoryService.toDto(updated));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

@@ -1,5 +1,6 @@
 package com.prodnretail.inventory_gen.controller;
 
+import com.prodnretail.inventory_gen.dto.ProductDTO;
 import com.prodnretail.inventory_gen.model.Product;
 import com.prodnretail.inventory_gen.service.ProductService;
 
@@ -10,7 +11,6 @@ import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
@@ -22,33 +22,36 @@ public class ProductController {
         this.productService=productService;
     }
 
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product){
-        Product savedProduct = productService.saveProduct(product);
-        return new ResponseEntity<>(savedProduct,HttpStatus.CREATED);
-    }
+@PostMapping
+public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO) {
+    Product saved = productService.saveProduct(productService.toEntity(productDTO));
+    return new ResponseEntity<>(productService.toDto(saved), HttpStatus.CREATED);
+}
 
-    @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts(){
-        List<Product> products = productService.getAllProducts();
-        return new ResponseEntity<>(products,HttpStatus.OK);
-    }
+@GetMapping
+public ResponseEntity<List<ProductDTO>> getAllProducts() {
+    List<ProductDTO> dtos = productService.getAllProducts().stream()
+        .map(productService::toDto)
+        .toList();
+    return ResponseEntity.ok(dtos);
+}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable UUID id){
-       return productService.getProductById(id).map(product -> new ResponseEntity<>(product, HttpStatus.OK))
-       .orElse(ResponseEntity.notFound().build());
-    }
+@GetMapping("/{id}")
+public ResponseEntity<ProductDTO> getProductById(@PathVariable UUID id) {
+    return productService.getProductById(id)
+        .map(product -> new ResponseEntity<>(productService.toDto(product), HttpStatus.OK))
+        .orElse(ResponseEntity.notFound().build());
+}
     
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable UUID id, @Valid @RequestBody Product product) {
-        return productService.getProductById(id)
-       .map(existingProduct -> {
-        product.setId(existingProduct.getId());
-        Product updatedProduct = productService.saveProduct(product); 
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);})
-       .orElseGet(() -> ResponseEntity.notFound().build());
+@PutMapping("/{id}")
+public ResponseEntity<ProductDTO> updateProduct(@PathVariable UUID id, @Valid @RequestBody ProductDTO dto) {
+    try {
+        Product updated = productService.updateProductFromDto(id, dto);
+        return ResponseEntity.ok(productService.toDto(updated));
+    } catch (RuntimeException e) {
+        return ResponseEntity.notFound().build();
     }
+}
     
 
     @DeleteMapping("/{id}")
