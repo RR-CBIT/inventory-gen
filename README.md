@@ -23,17 +23,15 @@ A Spring Boot-based RESTful Inventory Management System for managing **Products*
 | Database      | PostgreSQL                       |
 | Mapping       | ModelMapper                      |
 | Build Tool    | Maven                            |
-| API Docs      | Swagger / SpringDoc OpenAPI      |
-| Testing       | JUnit, Mockito (optional)        |
+| API Docs      | Swagger / SpringDoc OpenAPI      |       |
 | Dev Tools     | Spring Boot DevTools             |
-| Packaging     | Docker (optional)                |
 
 ## ⚙️ Run Locally
 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/inventory-gen.git
+   git clone https://github.com/RR-CBIT/inventory-gen.git
    cd inventory-gen
 2.	Update application.properties:
      ```bash
