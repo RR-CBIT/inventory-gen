@@ -28,15 +28,6 @@ A Spring Boot-based RESTful Inventory Management System for managing **Products*
 | Dev Tools     | Spring Boot DevTools             |
 | Packaging     | Docker (optional)                |
 
-## 🗃️ Folder Structure
-inventory-gen/
-├── controller/         # REST controllers
-├── dto/                # Data Transfer Objects
-├── model/              # JPA Entities
-├── repository/         # Spring Data Repositories
-├── service/            # Business logic
-├── config/             # Mapper & Swagger configs
-└── InventoryGenApp.java
 ## ⚙️ Run Locally
 
 1. **Clone the repository:**
@@ -50,5 +41,8 @@ inventory-gen/
      spring.datasource.username=yourusername
      spring.datasource.password=yourpassword
 3.	Run using Maven:
-   ```bash
-    mvn spring-boot:run
+       ```bash
+        mvn spring-boot:run
+4. Access the app:
+  •	API Base URL: http://localhost:8080/api/
+	•	Swagger UI : http://localhost:8080/swagger-ui.html
