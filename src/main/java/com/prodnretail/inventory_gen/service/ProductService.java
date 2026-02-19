@@ -89,7 +89,7 @@ public Product toEntity(ProductDTO dto) {
     Product product = new Product();
     product.setProdName(dto.getProdName());
     product.setProdDescription(dto.getProdDescription());
-    product.setPrice(dto.getPrice());
+    product.setCostPrice(dto.getPrice());
     product.setQuantity(dto.getQuantity());
 
     Category category = categoryRepo.findById(dto.getCategoryId())
@@ -106,7 +106,7 @@ public ProductDTO toDto(Product product) {
     return ProductDTO.builder()
         .prodName(product.getProdName())
         .prodDescription(product.getProdDescription())
-        .price(product.getPrice())
+        .price(product.getCostPrice())
         .quantity(product.getQuantity())
         .categoryId(product.getCategory().getId())
         .supplierId(product.getSupplier().getId())

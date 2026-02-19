@@ -22,13 +22,16 @@ public class Product {
     @NotBlank(message = "Product name is required")
     private String prodName;
 
-    @Size(max=255,message = "Desccription is too long")
+    @Size(max=255,message = "Description is too long")
     private String prodDescription;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "price")
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than 0")
-    private Double price;
+    private Double costPrice;
+
+    @Min(0)
+    @NotNull
     private Integer quantity;
 
     @ManyToOne
@@ -38,5 +41,15 @@ public class Product {
     @ManyToOne
     @JoinColumn(name="supplier_id")
     private Supplier supplier;
+
+    @Min(0)
+    private Integer reorderLevel;
+
+    @Min(0)
+    private Integer reorderQuantity;
+
+    @Positive
+    private Double sellingPrice;
+
 
 }
