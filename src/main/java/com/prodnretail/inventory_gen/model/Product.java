@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import java.util.*;
 
+import com.prodnretail.inventory_gen.model.enums.StockStatus;
+
 @Entity
 @Table(name = "products")
 @Getter
@@ -51,5 +53,6 @@ public class Product {
     @Positive
     private Double sellingPrice;
 
-
+    @Enumerated(EnumType.STRING)
+    private StockStatus stockStatus;
 }

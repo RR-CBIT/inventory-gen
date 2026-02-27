@@ -1,6 +1,10 @@
 package com.prodnretail.inventory_gen.dto;
 
 import java.util.UUID;
+
+import com.prodnretail.inventory_gen.model.enums.StockStatus;
+
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,6 +17,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ProductDTO {
+
+    private UUID id;
     @NotBlank(message = "Product name is required")
     private String prodName;
 
@@ -29,5 +35,17 @@ public class ProductDTO {
 
     @NotNull(message = "Supplier id is required")
     private UUID supplierId;
+
+    @Min(0)
+    private Integer reorderLevel;
+
+    @Min(0)
+    private Integer reorderQuantity;
+
+    @Positive
+    private Double sellingPrice;
+
+    private StockStatus stockStatus;
+
 
 }

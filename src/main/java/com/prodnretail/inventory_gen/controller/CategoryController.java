@@ -15,51 +15,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.prodnretail.inventory_gen.dto.CategoryDTO;
-import com.prodnretail.inventory_gen.model.Category;
 import com.prodnretail.inventory_gen.service.CategoryService;
+
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api/categories")
+@AllArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
 
-    public CategoryController(CategoryService categoryService){
-        this.categoryService=categoryService;
-    }
-
     @GetMapping
     public ResponseEntity<List<CategoryDTO>> getAllCategories(){
-        List <CategoryDTO> dtos= categoryService.getAllCategories().stream()
-        .map(categoryService::toDto).toList();
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(categoryService.getAll());
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable UUID id){
-        return categoryService.getCategoryById(id)
-        .map(category -> new ResponseEntity<>(categoryService.toDto(category),HttpStatus.OK))
-        .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(categoryService.getById(id));
     }
 
     @PostMapping
     public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO){
-        Category saved = categoryService.saveCategory(categoryService.toEntity(categoryDTO));
-        return new ResponseEntity<>(categoryService.toDto(saved),HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(categoryDTO));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody CategoryDTO dto) {
-        try {
-            Category updated = categoryService.updateCategoryFromDto(id, dto);
-            return ResponseEntity.ok(categoryService.toDto(updated));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+            return ResponseEntity.ok(categoryService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
-        categoryService.deleteCategory(id);
+        categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -5,39 +5,37 @@ import java.util.UUID;
 
 import com.prodnretail.inventory_gen.model.enums.InventoryAction;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Entity
-@Table(name="inventory_log")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InventoryLog {
+public class SalesHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID productId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "restock_type")
-    private InventoryAction restockType;
-
-    private Integer quantityChanged;
+    @ManyToOne
+    @JoinColumn(name="product_id", nullable=false)
+    private Product product;
+    
+    private int quantitySold;
 
     private LocalDateTime timestamp;
 }

@@ -1,8 +1,9 @@
 package com.prodnretail.inventory_gen.controller;
 
 import com.prodnretail.inventory_gen.dto.SupplierDTO;
-import com.prodnretail.inventory_gen.model.Supplier;
 import com.prodnretail.inventory_gen.service.SupplierService;
+
+import lombok.AllArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,47 +14,34 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/suppliers")
+@AllArgsConstructor
 public class SupplierController {
 
     private final SupplierService supplierService;
 
-    public SupplierController(SupplierService supplierService) {
-        this.supplierService = supplierService;
-    }
-
     @GetMapping
     public ResponseEntity<List<SupplierDTO>> getAllSuppliers() {
-        List<SupplierDTO> dtos = supplierService.getAllSuppliers().stream()
-        .map(supplierService::toDto).toList();
-        return new ResponseEntity<>(dtos,HttpStatus.OK);
+        return ResponseEntity.ok(supplierService.getAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SupplierDTO> getSupplierById(@PathVariable UUID id) {
-        return supplierService.getSupplierById(id)
-                .map(supplier -> new ResponseEntity<>(supplierService.toDto(supplier),HttpStatus.OK))
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(supplierService.getById(id));
     }
 
     @PostMapping
     public ResponseEntity<SupplierDTO> createSupplier(@RequestBody SupplierDTO dto) {
-        Supplier supplier = supplierService.saveSupplier(supplierService.toEntity(dto));
-        return new ResponseEntity<>(supplierService.toDto(supplier),HttpStatus.CREATED);
+        return new ResponseEntity<>(supplierService.create(dto),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SupplierDTO> updateSupplier(@PathVariable UUID id, @RequestBody SupplierDTO dto) {
-        try {
-            Supplier supplier = supplierService.updateSupplierFromDto(id, dto);
-            return ResponseEntity.ok(supplierService.toDto(supplier));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+            return ResponseEntity.ok(supplierService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable UUID id) {
-        supplierService.deleteSupplier(id);
+        supplierService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
