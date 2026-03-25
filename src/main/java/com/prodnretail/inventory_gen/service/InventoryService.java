@@ -21,32 +21,38 @@ import com.prodnretail.inventory_gen.repository.ProductRepository;
 import com.prodnretail.inventory_gen.repository.SalesHistoryRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryService {
+
     private final ProductRepository productRepository;
     private final InventoryLogRepository inventoryLogRepository;
     private final SalesHistoryRepository salesHistoryRepository;
     private final ProductService productService;
 
-    public List<ProductDTO> getLowStockProducts(){
+    public List<ProductDTO> getLowStockProducts() {
         return productRepository.findAll().stream()
-        .filter(p-> p.getReorderLevel()!=null
-        && p.getQuantity() <= p.getReorderLevel()).map(productService::toDto).toList();
+            .filter(p -> p.getReorderLevel() != null &&
+                         p.getQuantity() <= p.getReorderLevel())
+            .map(productService::toDto)
+            .toList();
     }
 
-    public List<ProductDTO> getOutofStockProducts(){
-    return productRepository.findAll().stream()
+    public List<ProductDTO> getOutofStockProducts() {
+        return productRepository.findAll().stream()
             .filter(p -> p.getQuantity() == 0)
             .map(productService::toDto)
             .toList();
-}
+    }
 
-    public InventoryServiceDTO toDto(){
+    public InventoryServiceDTO toDto() {
         List<Product> products = productRepository.findAll();
 
         long totalProducts = products.size();
+
         long lowStockCount = products.stream()
             .filter(p -> p.getStockStatus() == StockStatus.LOW_STOCK)
             .count();
@@ -56,68 +62,75 @@ public class InventoryService {
             .count();
 
         double totalInventoryValue = products.stream()
-            .mapToDouble(p -> p.getCostPrice() * p.getQuantity())
+            .mapToDouble(p ->
+                (p.getCostPrice() == null ? 0.0 : p.getCostPrice()) * p.getQuantity()
+            )
             .sum();
 
-
-        return new InventoryServiceDTO(totalProducts, lowStockCount, outOfStockCount, totalInventoryValue);
+        return new InventoryServiceDTO(
+            totalProducts,
+            lowStockCount,
+            outOfStockCount,
+            totalInventoryValue
+        );
     }
 
     @Transactional
-    public void restockProduct(UUID productId, int quantity){
-        Product product = productRepository.findById(productId)
-        .orElseThrow(()-> new ResourceNotFoundException("product not found"));
+    public void restockProduct(UUID productId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero.");
+        }
 
-        product.setQuantity(product.getQuantity()+quantity);
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        product.setQuantity(product.getQuantity() + quantity);
         product.setStockStatus(productService.calculateStockStatus(product));
         productRepository.save(product);
 
-        InventoryLog log = new InventoryLog();
-        log.setProductId(productId);
-        log.setRestockType(InventoryAction.RESTOCK);
-        log.setQuantityChanged(quantity);
-        log.setTimestamp(LocalDateTime.now());
+        InventoryLog logEntry = new InventoryLog();
+        logEntry.setProductId(productId);
+        logEntry.setRestockType(InventoryAction.RESTOCK);
+        logEntry.setQuantityChanged(quantity);
+        logEntry.setTimestamp(LocalDateTime.now());
 
-        inventoryLogRepository.save(log);
+        inventoryLogRepository.save(logEntry);
 
-        SalesHistory history = new SalesHistory();
-            history.setProduct(product);
-            history.setQuantitySold(quantity);
-            history.setTimestamp(LocalDateTime.now());
-            System.out.println("Before saving sales history");
-            salesHistoryRepository.save(history);
-            System.out.println("After saving sales history");
+        log.debug("Restocked product {} with quantity {}", productId, quantity);
     }
 
     @Transactional
-    public void sellProduct(UUID productId, int quantity){
-        Product product= productRepository.findById(productId)
-        .orElseThrow(()-> new ResourceNotFoundException("product not found"));
+    public void sellProduct(UUID productId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero.");
+        }
 
-        if(quantity<=0) throw new IllegalArgumentException("Quantity must be greater than zero.");
-        if(product.getQuantity() < quantity) throw new StockUnavailableException("STOCK UNAVAILABLE");
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-            product.setQuantity(product.getQuantity()-quantity);
-            product.setStockStatus(productService.calculateStockStatus(product));
-            productRepository.save(product);
+        if (product.getQuantity() < quantity) {
+            throw new StockUnavailableException("Stock unavailable");
+        }
 
-            InventoryLog log = new InventoryLog();
-            log.setProductId(productId);
-            log.setRestockType(InventoryAction.SALE);
-            log.setQuantityChanged(-quantity);
-            log.setTimestamp(LocalDateTime.now());
-            System.out.println("Before inventory save");
-            inventoryLogRepository.save(log);
-            System.out.println("After inventory save");
+        product.setQuantity(product.getQuantity() - quantity);
+        product.setStockStatus(productService.calculateStockStatus(product));
+        productRepository.save(product);
 
+        InventoryLog logEntry = new InventoryLog();
+        logEntry.setProductId(productId);
+        logEntry.setRestockType(InventoryAction.SALE);
+        logEntry.setQuantityChanged(-quantity);
+        logEntry.setTimestamp(LocalDateTime.now());
 
+        inventoryLogRepository.save(logEntry);
 
-            SalesHistory history = new SalesHistory();
-            history.setProduct(product);
-            history.setQuantitySold(-quantity);
-            history.setTimestamp(LocalDateTime.now());
-            System.out.println("Before saving sales history");
-            salesHistoryRepository.save(history);
-            System.out.println("After saving sales history");
+        SalesHistory history = new SalesHistory();
+        history.setProduct(product);
+        history.setQuantitySold(quantity);
+        history.setTimestamp(LocalDateTime.now());
+
+        salesHistoryRepository.save(history);
+
+        log.debug("Sold product {} with quantity {}", productId, quantity);
     }
 }
